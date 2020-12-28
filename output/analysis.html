@@ -601,10 +601,9 @@ max(rdata$Number.of.Pages,na.rm = TRUE)</code></pre>
 rdata$datediff &lt;- difftime(rdata$Date.Read,rdata$Date.Added,units = &quot;day&quot;)
 rdata$datediff</code></pre>
 <pre><code>## Time differences in days
-##  [1]    0   45   14    6    4    1   12   53    9   34  157   12  -15 -143    0
-## [16]   -4    0    0    0    0   20   54   21   16   13    0    5    4  620    0
-## [31]   37    0    1   30   14    0    0   42    8   26   28    0    9   13    0
-## [46]  228 -156    6  185    3   12</code></pre>
+##  [1]    0   45   14    6    4    1   12   53    9   34  157   12  -15 -143    0   -4    0    0
+## [19]    0    0   20   54   21   16   13    0    5    4  620    0   37    0    1   30   14    0
+## [37]    0   42    8   26   28    0    9   13    0  228 -156    6  185    3   12</code></pre>
 <p>The disadvantage of Goodreads export data is that it only allows <strong>Date Added</strong> and <strong>Date Read</strong>. <strong>Date Added</strong> is when I added the book to my shelf, and Date Read is when I claimed to finish it. Normally, <strong>Date Read</strong> will be after <strong>Date Added</strong>, if I added on the day I started reading it, which results in a positive <strong>datediff</strong>.</p>
 <p>There are instances where I updated a book after I finished it, therefore <strong>Date Read</strong> will be before <strong>Date Added</strong>. The negative represents those cases.</p>
 <p>The 0s are the cases where I added the book right on the day I finished it.</p>
@@ -618,12 +617,11 @@ aggregate(rdata$datediff,list(rdata$datediff&lt;1), FUN=length)</code></pre>
 <pre class="r"><code>rdata$speed  &lt;- rdata$Number.of.Pages/as.integer(rdata$datediff)
 speedat &lt;- rdata%&gt;% filter(speed&gt;0&amp;is.na(rdata$speed)==FALSE&amp;speed!=Inf)
 speedat$speed</code></pre>
-<pre><code>##  [1]   7.8222222  18.5714286  45.6666667  51.5000000 191.0000000  36.8333333
-##  [7]   9.3207547  58.2222222  11.2352941   2.1210191  24.3333333  12.7500000
-## [13]   4.9629630   9.9047619  20.8750000  24.1538462  57.8000000  84.5000000
-## [19]   0.7161290   8.2162162 102.0000000  17.7333333  25.0000000  15.7142857
-## [25]  21.8750000   8.5769231  10.7142857  29.1111111  46.7692308   0.5175439
-## [31]  56.0000000   3.3675676  97.3333333  17.3333333</code></pre>
+<pre><code>##  [1]   7.8222222  18.5714286  45.6666667  51.5000000 191.0000000  36.8333333   9.3207547
+##  [8]  58.2222222  11.2352941   2.1210191  24.3333333  12.7500000   4.9629630   9.9047619
+## [15]  20.8750000  24.1538462  57.8000000  84.5000000   0.7161290   8.2162162 102.0000000
+## [22]  17.7333333  25.0000000  15.7142857  21.8750000   8.5769231  10.7142857  29.1111111
+## [29]  46.7692308   0.5175439  56.0000000   3.3675676  97.3333333  17.3333333</code></pre>
 <pre class="r"><code>mean(speedat$speed)</code></pre>
 <pre><code>## [1] 33.31033</code></pre>
 <p>My average reading speed is 33.31 pages/day</p>
