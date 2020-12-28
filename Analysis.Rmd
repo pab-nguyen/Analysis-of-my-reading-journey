@@ -1,0 +1,269 @@
+---
+title: "Analysis of my reading journey"
+author: "Phan Nguyen"
+date: "12/24/2020"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)  # visualization
+library(lubridate) #manipulate date
+library(knitr) # table
+
+```
+# Introduction
+
+Hello everyone, welcome to an Analysis of my reading journey. A little bit of background: I started reading again in 2018, after a long time of not touching books. The last book I had read before was when I was in 8th grade :D. 
+
+Since I started reading in 2018, I've been keeping track of the books I read, rating and reviews on Goodreads, and after two years, I had this small set of data available.I came across it the other day, when Goodreads showed me some stats on their website. 
+
+Moreover, I recently started learning data science on my own, therefore I am so thrilled to analyze this data. My purpose of this analysis is to answer some few questions:
+1. How much books I've read over the years?
+2. Are there correlation between time of year and the amount of reading ?
+3. Do I give better rating than other people do?
+4. What is my favourite genre? 
+
+I am new to this, so if you have any comments or suggestions, please let me know!
+
+LET'S DIVE IN!
+
+## The Goodreads Data
+First, let grab our data
+```{r}
+data <- read.csv("C:\\Users\\nguyen_phan\\Downloads\\goodreads_library_export.csv",encoding="UTF-8",header=TRUE,stringsAsFactors = FALSE)
+
+```
+
+```{r}
+dim(data)
+```
+There are 57 books in this data. This include books I read, currently am reading, and going to read. This is a small data set, however I believe there are some interesting insights in this one.
+Each of this book has 31 variables to describe it. 
+
+This is a sample of the data set. We have name of book, author, my rating, other people' rating, number of pages, date read, date added.
+```{r echo=FALSE}
+#create a table
+kable(data[1:5,][c(2,3,8,9,11,12,15,16,19)])
+```
+
+First, I will convert some variables to its proper data type.
+```{r echo=FALSE}
+#turn variable into date
+data$Date.Read <- as.Date(data$Date.Read)
+data$Date.Added <- as.Date(data$Date.Added)
+```
+
+## Books
+```{r}
+shelf1 <- as.data.frame(table(data$Exclusive.Shelf))
+colnames(shelf1)[1] <- "Shelf"
+kable(shelf1)
+```
+
+I have read 51 books so far.
+
+We are only interested in looking at books I have read, therefore we will filter read books.
+
+And also make make some variables less mouthful.
+
+```{r}
+# filter read books
+rdata<-data %>% filter(Exclusive.Shelf=='read')
+#easier to see
+rdata <- as_tibble(rdata)
+
+#make this variable sh
+names(rdata)[names(data)=='Original.Publication.Year'] <- "opy"
+```
+
+I am interested in seeing read books by year
+```{r}
+# create shelf 2, dataframe split books read by year
+shelf2 <- rdata %>% group_by(year(Date.Read)) %>% select('year(Date.Read)') 
+shelf2 <- as.data.frame(table(shelf2[,1]))
+shelf2 <- mutate(shelf2,pct_change=round((Freq/lag(Freq)-1)*100,2))
+colnames(shelf2) <- c("Year","Books Read","Percent Change")
+```
+```{r}
+#create a table
+kable(shelf2)
+```
+
+```{r echo=FALSE}
+# ggplot(shelf2, aes(x=Year,y=Freq))+geom_col(fill="aquamarine4")+
+#   geom_text(aes(label=Freq), vjust=-0.5)+
+#   labs(y="Number of Books",title="Books Read per Year")+
+#   ylim(0,25)
+```
+There was a big jump between 2018 and 2019 in terms of book read (111%). However, there was no significant change from 2019 to 2020 (21%). I'm reading more books each year, but at a decreasing rate.
+
+Here are the oldest and newest books
+```{r results="hold"}
+#create a table with row as the title of the newest books, remove missing values
+table <- tibble(rdata$Title[rdata$opy==max(na.omit(rdata$opy))&is.na(rdata$opy)==FALSE])
+table[,2] <- rep(max(na.omit(rdata$opy),nrow(table)))
+colnames(table) <- c("Newest books","Year")
+kable(table)
+
+#create a table with row as the title of the oldest books, remove missing values
+table <- tibble(rdata$Title[rdata$opy==min(na.omit(rdata$opy))&is.na(rdata$opy)==FALSE])
+table [,2] <- rep(min(na.omit(rdata$opy)),nrow(table))
+colnames(table) <- c("Oldest books","Year")
+kable(table)
+```
+
+Here are the thickest book and the least thickest book
+```{r warning=FALSE, message=FALSE}
+table1 <- tibble(rdata$Title[which.max(rdata$Number.of.Pages)])
+max(rdata$Number.of.Pages,na.rm = TRUE)
+rdata$Title[which.min(rdata$Number.of.Pages)]
+min(rdata$Number.of.Pages,na.rm=TRUE)
+```
+
+
+## Speed
+Another information I want to know is how fast do I finish a book? 
+I will create a variable in rdata, to calculate the speed.
+Speed will equal to Number of pages divided by Days Difference or **datediff**.
+
+**datediff** is calculated by taking Date Read minus Date Added
+```{r}
+# days to finish a book
+rdata$datediff <- difftime(rdata$Date.Read,rdata$Date.Added,units = "day")
+rdata$datediff
+```
+The disadvantage of Goodreads export data is that it only allows **Date Added** and **Date Read**. **Date Added** is when I added the book to my shelf, and Date Read is when I claimed to finish it. Normally, **Date Read** will be after **Date Added**, if I added on the day I started reading it, which results in a positive **datediff**. 
+
+There are instances where I updated a book after I finished it, therefore **Date Read** will be before **Date Added**. The negative represents those cases. 
+
+The 0s are the cases where I added the book right on the day I finished it.
+
+There is another column called Date Started on Goodreads, but they don't allow you to export it. 
+
+```{r}
+#count datediff which smaller than 1
+aggregate(rdata$datediff,list(rdata$datediff<1), FUN=length)
+```
+
+I will remove the 0 and the negative to calculate speed. 17 books will be removed
+
+```{r}
+rdata$speed  <- rdata$Number.of.Pages/as.integer(rdata$datediff)
+speedat <- rdata%>% filter(speed>0&is.na(rdata$speed)==FALSE&speed!=Inf)
+speedat$speed
+mean(speedat$speed)
+```
+My average reading speed is 33.31 pages/day
+
+Let's look at it through year
+```{r}
+speedat %>% group_by(year(Date.Read))%>%summarise(avgspeed = mean(speed,na.rm=TRUE))
+```
+
+Average speed in 2018 somehow is the highest, despite the low number of books. Is it because of the number of pages per book?
+
+```{r}
+kable(speedat %>% group_by(year(Date.Read))%>%summarise(avgspeed = mean(speed,na.rm=TRUE),avgpages = mean(Number.of.Pages,na.rm=TRUE),n=n()) %>% mutate(truen=shelf2$`Books Read`) %>% mutate(removed=truen-n))
+```
+
+The average number of pages in 2018 is actually higher than 2019 and 2020. 
+From what I understand, I read less books in 2018, but in a short window. In 2020, I read more books, more frequently, but at slower pace. 
+
+The removed data also play a part here. There are 3 books removed for 2018, 9 for 2019 and 5 for 2020. Even though 2020 has double the books of 2018, it might be that the books which are removed in 2020 have a really high number of pages.
+
+Or I just read super fast in a short window in 2018. 
+
+## Number of Pages
+We will look at number of pages I've read. Books have different number of pages.
+```{r}
+datagraph <- data %>% mutate(month=floor_date(Date.Read,unit="month")) %>% group_by(month) %>% mutate(sumpages=sum(Number.of.Pages,na.rm = TRUE))
+```
+
+```{r echo=FALSE, warning=FALSE}
+datagraph %>%
+  ggplot(aes(x=month,y=sumpages))+
+  geom_bar(position="dodge",
+           stat="identity",
+           fill="#00AFBB",width = 20) +
+  geom_text(aes(label=sumpages),vjust=-.5,size=2.5)+
+  labs(x="Months",y="Pages Read",title="Pages Read through time")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  ylim(0,1500)+
+  scale_x_date(breaks="month",
+               labels = function(x) ifelse(year(x)%in%c(2017,max(year(datagraph$month))),"", format(x,"%b %Y")), 
+               limits=as.Date(c('2017-12-15', '2020-12-15')))+
+  theme(axis.text.x = element_text(angle=60, hjust = 1))
+```
+
+As you can see, I'm not a consistent reader :D.
+
+
+```{r echo=FALSE, warning=FALSE}
+# create a year vector from the data
+years <- as.integer(unique(year(data$Date.Read)))
+years <- na.omit(years)
+years <- sort(years, decreasing = FALSE)
+# create a color vector for graph colors
+colors <- c("deepskyblue","dodgerblue4","steelblue")
+# create a vector for total number of pages read in a year
+totalpages <- rep(0,length(years))
+for (i in c(1:length(years))){
+  totalpages[i] <- sum(data$Number.of.Pages[year(data$Date.Read)==years[i]],na.rm=TRUE)
+}
+
+
+#loop through years to create chart of pages read in each year
+for (i in c(1:length(years))){
+    print(datagraph %>% filter(year(Date.Read)==as.integer(years[i])) %>% 
+    ggplot(aes(x=month,y=sumpages))+
+    geom_bar(position="dodge",
+             stat="identity",
+             fill=colors[i]) +
+    geom_text(aes(label=sumpages),vjust=-.5)+
+    labs(x="Months",y="Pages Read",title=paste(totalpages[i]," pages read in ",years[i],sep=""))  +
+    theme(plot.title = element_text(hjust = 0.5))+
+    ylim(0,1500)+
+    scale_x_date(breaks="month",
+                 labels = function(x) ifelse(year(x)!=years[i],"" , months(x, TRUE)),
+                 limits=as.Date(c(paste(toString(years[i]-1),"-12-15",sep=""),paste(toString(years[i]),"-12-15",sep="")))
+    )
+    )
+    }
+                 
+```
+
+## Rating
+I want to compare my ratings with average book rating
+```{r}
+#My rating vs average rating
+mean(data$My.Rating)
+mean(data$Average.Rating)
+```
+
+```{r}
+#creating a dataset of my rating versus average rating
+ratedata<-aggregate(rdata$Average.Rating,list(myrating=rdata$My.Rating),FUN="mean")
+ratedata$class <- ratedata$myrating
+for (i in c(0:nrow(ratedata))){ratedata[i,3]<- ratedata$myrating[i]}
+colnames(ratedata)[2] <-"avg"
+ratedata <- gather(ratedata,var,value,myrating,avg)
+```
+
+
+```{r}
+#plot it
+ggplot(ratedata, aes(x=class,y=value,fill=var))+
+  geom_bar(stat='identity',position='dodge')+
+  geom_text(aes(label=round(value,2)),vjust=-.5,position=position_dodge(width=0.9))+
+  labs(y="Rating",title="Books Rating: Phan's versus Average")+
+  ylim(0,6)+
+  theme(plot.title = element_text(hjust = 0.5),legend.title=element_blank(),axis.title.x = element_blank(),axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
+  scale_fill_discrete(labels = c("Average Rating", "My Rating"))
+```
+
+
