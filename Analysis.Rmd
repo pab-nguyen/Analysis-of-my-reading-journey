@@ -9,12 +9,12 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+
 library(tidyverse)
 library(ggplot2)  # visualization
 library(lubridate) #manipulate date
 library(knitr) # table
-
 ```
 # Introduction
 
@@ -35,7 +35,7 @@ LET'S DIVE IN!
 ## The Goodreads Data
 First, let grab our data
 ```{r}
-data <- read.csv("C:\\Users\\nguyen_phan\\Downloads\\goodreads_library_export.csv",encoding="UTF-8",header=TRUE,stringsAsFactors = FALSE)
+data <- read.csv("data\\goodreads_library_export.csv",encoding="UTF-8",header=TRUE,stringsAsFactors = FALSE)
 
 ```
 
@@ -120,9 +120,11 @@ kable(table)
 Here are the thickest book and the least thickest book
 ```{r warning=FALSE, message=FALSE}
 table1 <- tibble(rdata$Title[which.max(rdata$Number.of.Pages)])
-max(rdata$Number.of.Pages,na.rm = TRUE)
-rdata$Title[which.min(rdata$Number.of.Pages)]
-min(rdata$Number.of.Pages,na.rm=TRUE)
+table1[,2] <- max(rdata$Number.of.Pages,na.rm = TRUE)
+table1[2,1] <- rdata$Title[which.min(rdata$Number.of.Pages)]
+table1[2,2] <-min(rdata$Number.of.Pages,na.rm=TRUE)
+colnames(table1) <- c("Books", "No. of Pages")
+kable(table1)
 ```
 
 
@@ -265,5 +267,3 @@ ggplot(ratedata, aes(x=class,y=value,fill=var))+
   theme(plot.title = element_text(hjust = 0.5),legend.title=element_blank(),axis.title.x = element_blank(),axis.text.x = element_blank(),axis.ticks.x = element_blank()) +
   scale_fill_discrete(labels = c("Average Rating", "My Rating"))
 ```
-
-
