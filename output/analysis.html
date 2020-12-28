@@ -389,7 +389,7 @@ summary {
 <div id="the-goodreads-data" class="section level2">
 <h2>The Goodreads Data</h2>
 <p>First, let grab our data</p>
-<pre class="r"><code>data &lt;- read.csv(&quot;C:\\Users\\nguyen_phan\\Downloads\\goodreads_library_export.csv&quot;,encoding=&quot;UTF-8&quot;,header=TRUE,stringsAsFactors = FALSE)</code></pre>
+<pre class="r"><code>data &lt;- read.csv(&quot;data\\goodreads_library_export.csv&quot;,encoding=&quot;UTF-8&quot;,header=TRUE,stringsAsFactors = FALSE)</code></pre>
 <pre class="r"><code>dim(data)</code></pre>
 <pre><code>## [1] 57 31</code></pre>
 <p>There are 57 books in this data. This include books I read, currently am reading, and going to read. This is a small data set, however I believe there are some interesting insights in this one. Each of this book has 31 variables to describe it.</p>
@@ -586,12 +586,29 @@ kable(table)</code></pre>
 </table>
 <p>Here are the thickest book and the least thickest book</p>
 <pre class="r"><code>table1 &lt;- tibble(rdata$Title[which.max(rdata$Number.of.Pages)])
-max(rdata$Number.of.Pages,na.rm = TRUE)</code></pre>
-<pre><code>## [1] 660</code></pre>
-<pre class="r"><code>rdata$Title[which.min(rdata$Number.of.Pages)]</code></pre>
-<pre><code>## [1] &quot;Nhân T&lt;U+1ED1&gt; Enzyme: Minh H&lt;U+1ECD&gt;a&quot;</code></pre>
-<pre class="r"><code>min(rdata$Number.of.Pages,na.rm=TRUE)</code></pre>
-<pre><code>## [1] 79</code></pre>
+table1[,2] &lt;- max(rdata$Number.of.Pages,na.rm = TRUE)
+table1[2,1] &lt;- rdata$Title[which.min(rdata$Number.of.Pages)]
+table1[2,2] &lt;-min(rdata$Number.of.Pages,na.rm=TRUE)
+colnames(table1) &lt;- c(&quot;Books&quot;, &quot;No. of Pages&quot;)
+kable(table1)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Books</th>
+<th align="right">No. of Pages</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Nam Hải Quy Khư (Ma Thổi Đèn II, #2)</td>
+<td align="right">660</td>
+</tr>
+<tr class="even">
+<td align="left">Nhân Tố Enzyme: Minh Họa</td>
+<td align="right">79</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div id="speed" class="section level2">
 <h2>Speed</h2>
