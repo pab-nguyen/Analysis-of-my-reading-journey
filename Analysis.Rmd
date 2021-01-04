@@ -24,8 +24,8 @@ Hello everyone, welcome to an Analysis of my reading journey. A little bit of ba
 Since I started reading in 2018, I've been keeping track of the books I read, rating and reviews on Goodreads, and after two years, I had this small set of data available. I came across it the other day, when Goodreads showed me some stats on their website. 
 
 Moreover, I recently started learning data science on my own, therefore I am so thrilled to analyze this data. My purpose of this analysis is to answer some simple exploratory and descriptive analysis questions:  
-1. How much books I've read over the years ? Do I read more every year?
-2. I read books in Vietnamese and English? How many of those are Viet and how many are English?
+1. How much books I've read over the years ? Do I read more every year?  
+2. I read books in Vietnamese and English? How many of those are Viet and how many are English?  
 3. Are there correlation between time of year and the amount of reading ?  
 4. Do I give better rating than other people do ?  
 5. How fast do I read ?  
@@ -50,7 +50,7 @@ dim(data)
 There are 57 books in this data. This include books I read, currently am reading, and going to read. This is a small data set, however I believe there are some interesting insights in this one.
 Each of this book has 31 variables to describe it. 
 
-This is a sample of the data set. The column **My.Review** is left out, due to the fact that it made the row height too large.
+This is a sample of the data set. The column **My.Review** is left out, due to the fact that it made the row height too large. There are also a lot of missing values. 
 ```{r echo=FALSE}
 #create a table
 kable(data[,-which(names(data) %in% "My.Review")]) %>% 
@@ -59,7 +59,7 @@ kable(data[,-which(names(data) %in% "My.Review")]) %>%
 ```
 
 
-First, I will convert some variables to its proper data type.
+I will convert some variables to its proper data type.
 ```{r}
 #turn variable into date
 data$Date.Read <- as.Date(data$Date.Read)
@@ -67,6 +67,7 @@ data$Date.Added <- as.Date(data$Date.Added)
 ```
 
 ## 2.Descriptive and Exploratory Analysis
+  I believe that we can 
 ### 2.1.Books
 ```{r}
 shelf1 <- as.data.frame(table(data$Exclusive.Shelf))
@@ -166,7 +167,7 @@ kable(head(subset(title,title$Encoding=="ASCII"),3))%>%
 
 ```
 
-So we can assume that Viet titles are encoded with UTF-8, since they have some non-ASCII characters. Fortunately, we had a small dataset so I was able to check if I have left out any books. This might not hold true if a book title has no non-ASCII character and we have a big data set. 
+So we can assume that Viet titles are encoded with UTF-8, since they have some non-ASCII characters. Fortunately, we had a small dataset so I was able to check if I have left out any books. This might not hold true if a Viet book title has no non-ASCII character and we have a big data set. 
 
 ```{r}
 # Number of books in Viet
@@ -351,20 +352,26 @@ ggplot(ratedata, aes(x=class,y=value,fill=var))+
 ```
 
 #### 2.5.b.Reviews
-Does the length of reviews correspond to rating? Let's find out.
-First, let's get a dataframe for **My.Review**'s length and **My.Rating**.
+Does thicker book has higher rating? Let's find out.
+First, let's get a dataframe for **Number.of.Pages** and **Average.Rating**.
 ```{r}
 # dataframe for review length and my.rating
-ratereview <- tibble(rvlength = stri_length(rdata$My.Review),rating = rdata$My.Rating,title=rdata$Title)
+ratereview <- tibble(numpages = rdata$Number.of.Pages,rating = rdata$Average.Rating,title=rdata$Title)
 ratereview
-ggplot(ratereview,aes(x=as.factor(rating),y=rvlength))+geom_point()
+ggplot(ratereview,aes(x=rating,y=numpages))+geom_point()
 ratereview$title[which.max(ratereview$rvlength)]
 ```
 
 As first glance, there is no correlation here. The 4 star and five star books have somewhat the same length of reviews. There are some outliers for five stars reviews. And I  rated only one book 3 stars.
+```{r}
+model <- lm(rating~numpages,data=ratereview)
+summary(model)
+```
 
 
-# III. Conclusion  
+# III. Conclusion 
+
+We have answered some questions we had at the beginning. Even though this data is 
 
 From this project, I learned that I need to put more time into exploring the data, before doing any type of analysis. I spent a lot of time making graphs and charts, because of not knowing syntax and not understanding data structures. The write-ups were quite short for the time I put into each graphs.
 
