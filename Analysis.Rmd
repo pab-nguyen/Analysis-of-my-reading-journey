@@ -67,7 +67,7 @@ data$Date.Added <- as.Date(data$Date.Added)
 ```
 
 ## 2.Descriptive and Exploratory Analysis
-  I believe that we can 
+
 ### 2.1.Books
 ```{r}
 shelf1 <- as.data.frame(table(data$Exclusive.Shelf))
@@ -224,8 +224,7 @@ As you can see, I'm not a consistent reader :D.
 
 Additionally, this represents how many pages of a book I finished in a certain month, rather than how much I read that month. Let's say if I started reading a 500-pages book in January and finished it in May, the 500 will be count in May. 
 
-We will find a way to make the data reflect the true pages read per month later in the analysis.
-
+I haven't figured out a way to reflect the true number of pages read. I hope to do this in future analysis. 
 
 ```{r echo=FALSE, warning=FALSE}
 # create a year vector from the data
@@ -308,7 +307,7 @@ kable(speedat %>% group_by(year=year(Date.Read))%>%summarise(avgspeed = mean(spe
 Average speed in 2018 somehow is the highest, despite the low number of books. Is it because of the number of pages per book?
 
 ```{r}
-kable(speedat %>% group_by(year(Date.Read))%>%summarise(avgspeed = mean(speed,na.rm=TRUE),avgpages = mean(Number.of.Pages,na.rm=TRUE),n=n()) %>% mutate(truen=shelf2$`Books Read`) %>% mutate(removed=truen-n)) %>%
+kable(speedat %>% group_by(year(Date.Read))%>%summarise(avgspeed = mean(speed,na.rm=TRUE),avgpages = mean(Number.of.Pages,na.rm=TRUE),n=n()) %>% mutate(true_n=shelf2$`Books Read`) %>% mutate(removed=true_n-n)) %>%
       kable_styling(latex_options = "striped")
 
 ```
@@ -339,7 +338,6 @@ colnames(ratedata)[2] <-"avg"
 ratedata <- gather(ratedata,var,value,myrating,avg)
 ```
 
-
 ```{r}
 #plot it
 ggplot(ratedata, aes(x=class,y=value,fill=var))+
@@ -351,32 +349,41 @@ ggplot(ratedata, aes(x=class,y=value,fill=var))+
   scale_fill_discrete(labels = c("Average Rating", "My Rating"))
 ```
 
+The 3-star books, which are "meh" in my opnions, seems to be preferred by others. On the other hand, books I found excellent - 5-stars books - are rated much lower. 
+
 #### 2.5.b.Reviews
 Does thicker book has higher rating? Let's find out.
 First, let's get a dataframe for **Number.of.Pages** and **Average.Rating**.
 ```{r}
 # dataframe for review length and my.rating
 ratereview <- tibble(numpages = rdata$Number.of.Pages,rating = rdata$Average.Rating,title=rdata$Title)
-ratereview
 ggplot(ratereview,aes(x=rating,y=numpages))+geom_point()
-ratereview$title[which.max(ratereview$rvlength)]
 ```
 
-As first glance, there is no correlation here. The 4 star and five star books have somewhat the same length of reviews. There are some outliers for five stars reviews. And I  rated only one book 3 stars.
-```{r}
+As first glance, there is no correlation here. The 4 star and five star books have somewhat the same length of reviews. There are some outliers for five stars reviews. And I rated only one book 3 stars.
+```{r results="hold"}
+cor.test(ratereview$numpages,ratereview$rating)
 model <- lm(rating~numpages,data=ratereview)
 summary(model)
 ```
 
+It seems like **numpages** doesn't correlate to **rating** at all. The correlation coefficient is around -0.11, and the p-value for the predictor is large. Therefore rating and book thickness are independent. 
+
 
 # III. Conclusion 
+Let's summarize answers to the questions I asked at the beginning of this analysis:  
+1. I read 51 books so far. And I do read more every year.  
+2. Half of the books I read are Vietnamese.  
+3. There are not a lot of correlation between time of year and amount of reading.  
+4. Books I found 'meh' got higher rating from other people, and books I loved got lower rating.   
+5. I read around 30 pages/day. 
 
-We have answered some questions we had at the beginning. Even though this data is 
+Even though this analysis is mostly exploratory in essence, I found that it is a great exercise as a beginner. I also think there are a lot more to be done in the future. 
 
 From this project, I learned that I need to put more time into exploring the data, before doing any type of analysis. I spent a lot of time making graphs and charts, because of not knowing syntax and not understanding data structures. The write-ups were quite short for the time I put into each graphs.
 
-I could also learn more by finding and reading other analysis on Goodreads data.  
+I could also learn more by reading other analyses on Goodreads data.  
 
-This is one of my first projects I did on something I like. And I was surprised with the amount of time and obsession I put in it. It felt great. I will recreate this analysis every year. 
+This is one of my first projects I did on something I like. And I was surprised with the amount of time I put in it. It felt great. I'm gonna do this at the end of 2021 as well.  
 
 
