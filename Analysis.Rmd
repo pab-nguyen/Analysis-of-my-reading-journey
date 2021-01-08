@@ -3,21 +3,26 @@ title: "Analysis of my reading journey"
 author: "Phan Nguyen"
 date: "12/24/2020"
 output:
-  html_document: default
+  html_document: 
+    number_sections: true
+    toc: true
+    fig_width: 8
+    fig_height: 5
+    theme: cosmo
+    highlight: tango
+    code_folding: hide  
   pdf_document: default
   word_document: default
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
-
+```{r setup, include=FALSE, results='hide'}
 library(tidyverse)
 library(ggplot2)  # visualization
 library(lubridate) #manipulate date
 library(knitr) # table
 library(kableExtra) # table
 ```
-# I.Introduction
+# Introduction
 
 Hello everyone, welcome to an Analysis of my reading journey. A little bit of background: I started reading again in 2018, after a long time of not touching books. The last book I had read before was when I was in 8th grade :D. 
 
@@ -34,16 +39,17 @@ I am new to this, so if you have any comments or suggestions, please let me know
 
 LET'S DIVE IN!
 
-# II.The Analysis
+# The Analysis
 
-## 1.The Goodreads Data
+## The Goodreads Data
 First, let grab our data
-```{r}
+```{r class.source = "fold-show"}
 # encoding UTF-8 since there are Vietnamese characters
-data <- read.csv("data\\goodreads_library_export.csv",encoding="UTF-8",header=TRUE,stringsAsFactors = FALSE)
-```
+data <- read.csv("data//goodreads_library_export.csv",encoding="UTF-8",header=TRUE,stringsAsFactors = FALSE)
+```  
+  
 
-```{r}
+```{r class.source = "fold-show"}
 # call out dimensions of data
 dim(data)
 ```
@@ -51,7 +57,7 @@ There are 57 books in this data. This include books I read, currently am reading
 Each of this book has 31 variables to describe it. 
 
 This is a sample of the data set. The column **My.Review** is left out, due to the fact that it made the row height too large. There are also a lot of missing values. 
-```{r echo=FALSE}
+```{r }
 #create a table
 kable(data[,-which(names(data) %in% "My.Review")]) %>% 
   kable_styling() %>%
@@ -60,24 +66,23 @@ kable(data[,-which(names(data) %in% "My.Review")]) %>%
 
 
 I will convert some variables to its proper data type.
-```{r}
+```{r class.source = "fold-show"}
 #turn variable into date
 data$Date.Read <- as.Date(data$Date.Read)
 data$Date.Added <- as.Date(data$Date.Added)
 ```
 
-## 2.Descriptive and Exploratory Analysis
+## Descriptive and Exploratory Analysis
 
-### 2.1.Books
+### Books
 ```{r}
 shelf1 <- as.data.frame(table(data$Exclusive.Shelf))
 colnames(shelf1)[1] <- "Shelf"
 kable(shelf1) %>%
   kable_styling(latex_options = "striped")
-```
-   
-   
-I have read 51 books so far.
+```  
+
+I have read 51 books so far.  
 
 We are only interested in looking at books I have read, therefore we will filter read books.
 
@@ -91,17 +96,18 @@ rdata <- as_tibble(rdata)
 
 #make this variable sh
 names(rdata)[names(data)=='Original.Publication.Year'] <- "opy"
-```
+```  
 
 I am interested in seeing read books by year
-```{r}
+
+```{r class.source = "fold-show"}
 # create shelf 2, dataframe split books read by year
 shelf2 <- rdata %>% group_by(year(Date.Read)) %>% select('year(Date.Read)') 
 shelf2 <- as.data.frame(table(shelf2[,1]))
 shelf2 <- mutate(shelf2,pct_change=round((Freq/lag(Freq)-1)*100,2))
 colnames(shelf2) <- c("Year","Books Read","Percent Change")
 ```
-```{r}
+```{r class.source = "fold-show"}
 #create a table
 kable(shelf2)%>%
     kable_styling(latex_options = "striped")
@@ -113,10 +119,13 @@ kable(shelf2)%>%
 #   labs(y="Number of Books",title="Books Read per Year")+
 #   ylim(0,25)
 ```
+
+
+
 There was a big jump between 2018 and 2019 in terms of book read (111%). However, there was no significant change from 2019 to 2020 (21%). I'm reading more books each year, but at a decreasing rate.
 
 Here are the oldest and newest books
-```{r results="hold", echo=FALSE}
+```{r results="hold"}
 #create a table with row as the title of the newest books, remove missing values
 table <- tibble(rdata$Title[rdata$opy==max(na.omit(rdata$opy))&is.na(rdata$opy)==FALSE])
 table[,2] <- rep(max(na.omit(rdata$opy),nrow(table)))
@@ -131,11 +140,14 @@ table [,2] <- rep(min(na.omit(rdata$opy)),nrow(table))
 colnames(table) <- c("Oldest books","Year")
 kable(table) %>%
     kable_styling(latex_options = "striped")
-
 ```
 
-Here are the thickest and thinnest books
-```{r warning=FALSE, message=FALSE, echo=FALSE}
+
+Here are the thickest and thinnest books.  
+
+
+  
+```{r warning=FALSE, message=FALSE}
 table1 <- tibble(rdata$Title[which.max(rdata$Number.of.Pages)])
 table1[,2] <- max(rdata$Number.of.Pages,na.rm = TRUE)
 table1[2,1] <- rdata$Title[which.min(rdata$Number.of.Pages)]
@@ -146,9 +158,10 @@ kable(table1)%>%
 
 ```
 
-Lots of these books are Vietnamese, since I picked up some Viet books every time I vist home. With that being said, I did not expect the thickest book was a Viet. Now I want to know how often I read Viet books. 
 
-### 2.2.Viet books
+Lots of these books are Vietnamese, since I picked up some Viet books every time I vist home. With that being said, I did not expect the thickest book was a Viet. Now I want to know how often I read Viet books.  
+  
+### Viet books
 To detect books which are in Vietnamese, we might need to install some different packages. I will use stringi in this case to detect some characters.
 
 Thank to this [StackOverflow post](https://stackoverflow.com/questions/34613761/detect-non-ascii-characters-in-a-string) I was able to find this package and functions. 
@@ -165,16 +178,23 @@ kable(head(subset(title,title$Encoding=="UTF-8"),3)) %>%
 kable(head(subset(title,title$Encoding=="ASCII"),3))%>%
     kable_styling(latex_options = "striped")
 
-```
-
+```  
+   
+   
+   
+   
+   
 So we can assume that Viet titles are encoded with UTF-8, since they have some non-ASCII characters. Fortunately, we had a small dataset so I was able to check if I have left out any books. This might not hold true if a Viet book title has no non-ASCII character and we have a big data set. 
 
-```{r}
+```{r class.source = "fold-show"}
 # Number of books in Viet
 title %>% filter(Encoding=="UTF-8")%>% nrow()
+```
+```{r class.source = "fold-show"}
 # Number of books in English
 title %>% filter(Encoding!="UTF-8")%>% nrow()
 ```
+
 I read 26 books in Viet and 25 books in English. This is significantly different from what I expected, which is that I read more books in English than in Viet.
 
 ```{r}
@@ -190,21 +210,21 @@ ggplot(vietdata,aes(x=Month,y=Freq))+
   scale_x_discrete(limits = month.abb)+
   labs(x="Months",y="Number of books",title="Viet books read by months")+
   theme(plot.title = element_text(hjust = 0.5))
-```
+```  
 
 This graph makes sense since January is when I finished the most Viet books. This might be because I went home for Christmas and New Year and grabbed some books to read for my flight. 
 
 April, June and December are also months with second highest Viet books finished. I read some viet books in December so I can bring them home and put them on the shelves. I have no explanation for April and June. 
 
 
-### 2.3.Number of Pages
+### Number of Pages
 
 We will look at number of pages I've read. 
 ```{r}
 datagraph <- rdata %>% mutate(month=floor_date(Date.Read,unit="month")) %>% group_by(month) %>% mutate(sumpages=sum(Number.of.Pages,na.rm = TRUE)) 
 ```
 
-```{r echo=FALSE, warning=FALSE}
+```{r warning=FALSE}
 datagraph %>%
   ggplot(aes(x=month,y=sumpages))+
   geom_bar(position="dodge",
@@ -226,7 +246,7 @@ Additionally, this represents how many pages of a book I finished in a certain m
 
 I haven't figured out a way to reflect the true number of pages read. I hope to do this in future analysis. 
 
-```{r echo=FALSE, warning=FALSE}
+```{r  warning=FALSE}
 # create a year vector from the data
 years <- as.integer(unique(year(data$Date.Read)))
 years <- na.omit(years)
@@ -257,13 +277,13 @@ for (i in c(1:length(years))){
     )
     }
                  
-```
+```  
   
 In 2018, I didn't finish any book in February, March, April. Again, this only reflects the fact that I didn't finish any book, not that I was not reading. 
 
 In 2019 and 2020, there are not a lot of empty months, since I read more frequently, thus finished books more often. I wonder if my speed also plays a role here.  
 
-### 2.4.Speed
+### Speed
 Another information I want to know is how fast do I finish a book? 
 I will create a variable in rdata, to calculate the speed.
 Speed will equal to Number of pages divided by Days Difference or **datediff**.
@@ -282,7 +302,8 @@ The 0s are the cases where I added the book right on the day I finished it.
 
 There is another column called **Date Started** on Goodreads, but they don't allow you to export it. 
 
-```{r}
+
+```{r class.source = "fold-show"}
 #count datediff which smaller than 1
 aggregate(rdata$datediff,list(rdata$datediff<1), FUN=length)
 ```
@@ -292,26 +313,32 @@ I will remove the 0 and the negative in order to calculate speed. 17 books will 
 ```{r}
 rdata$speed  <- rdata$Number.of.Pages/as.integer(rdata$datediff)
 speedat <- rdata%>% filter(speed>0&is.na(rdata$speed)==FALSE&speed!=Inf)
-speedat$speed
+
+#average speed
 mean(speedat$speed)
-```
+```  
+  
 My average reading speed is 33.31 pages/day
 
 Let's look at it through year
-```{r}
+```{r message=FALSE}
 kable(speedat %>% group_by(year=year(Date.Read))%>%summarise(avgspeed = mean(speed,na.rm=TRUE))) %>%
       kable_styling(latex_options = "striped")
 
 ```
 
+
+  
 Average speed in 2018 somehow is the highest, despite the low number of books. Is it because of the number of pages per book?
 
-```{r}
+```{r message=FALSE}
 kable(speedat %>% group_by(year(Date.Read))%>%summarise(avgspeed = mean(speed,na.rm=TRUE),avgpages = mean(Number.of.Pages,na.rm=TRUE),n=n()) %>% mutate(true_n=shelf2$`Books Read`) %>% mutate(removed=true_n-n)) %>%
       kable_styling(latex_options = "striped")
 
 ```
 
+
+  
 The average number of pages in 2018 is actually higher than 2019 and 2020. 
 From what I understand, I read less books in 2018, but in a short window. In 2020, I read more books, more frequently, but at slower pace. 
 
@@ -320,12 +347,15 @@ The removed data also play a part here. There are 3 books removed for 2018, 9 fo
 Or I just read super fast in a short window in 2018. 
 
 
-### 2.5.Ratings & Reviews
-#### 2.5.a.Rating
+### Ratings & Reviews
+#### Rating
 I want to compare my ratings with average book rating
-```{r}
-#My rating vs average rating
+```{r class.source = "fold-show"}
+#My rating 
 mean(data$My.Rating)
+```
+```{r class.source = "fold-show"}
+#Average rating
 mean(data$Average.Rating)
 ```
 
@@ -351,10 +381,10 @@ ggplot(ratedata, aes(x=class,y=value,fill=var))+
 
 The 3-star books, which are "meh" in my opnions, seems to be preferred by others. On the other hand, books I found excellent - 5-stars books - are rated much lower. 
 
-#### 2.5.b.Reviews
+#### Reviews
 Does thicker book has higher rating? Let's find out.
 First, let's get a dataframe for **Number.of.Pages** and **Average.Rating**.
-```{r}
+```{r warning=FALSE, message=FALSE}
 # dataframe for review length and my.rating
 ratereview <- tibble(numpages = rdata$Number.of.Pages,rating = rdata$Average.Rating,title=rdata$Title)
 ggplot(ratereview,aes(x=rating,y=numpages))+geom_point()
@@ -370,7 +400,7 @@ summary(model)
 It seems like **numpages** doesn't correlate to **rating** at all. The correlation coefficient is around -0.11, and the p-value for the predictor is large. Therefore rating and book thickness are independent. 
 
 
-# III. Conclusion 
+# Conclusion 
 Let's summarize answers to the questions I asked at the beginning of this analysis:  
 1. I read 51 books so far. And I do read more every year.  
 2. Half of the books I read are Vietnamese.  
@@ -385,5 +415,3 @@ From this project, I learned that I need to put more time into exploring the dat
 I could also learn more by reading other analyses on Goodreads data.  
 
 This is one of my first projects I did on something I like. And I was surprised with the amount of time I put in it. It felt great. I'm gonna do this at the end of 2021 as well.  
-
-
