@@ -1,6 +1,7 @@
 # Analysis-of-my-reading-journey
-***Last updated 12/24/2020***
-Using R to analyze my reading data stored on Goodreads
+*Last updated 12/24/2020*       
+Using R to analyze my reading data stored on Goodreads    
+
 The full report is available [here](http://htmlpreview.github.io/?https://github.com/pab-nguyen/Analysis-of-my-reading-journey/blob/main/output/analysis.html)
 
 ## Introduction
