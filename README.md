@@ -18,9 +18,9 @@ Moreover, I recently started learning data science on my own, therefore I am so 
 
 ## Datasets and Methodology
 The dataset is stored in a .csv file. It has data of all the books I have read, such as their title, author, date published, date I started reading, date I finished, etc.
-There are 57 books in this dataset. 
-After exporting it from Goodreads, I used R Studio and R Markdown to analyze, create charts, and write up the report. 
-Check the full report in the link on the top
+There are 57 books in this dataset.   
+After exporting it from Goodreads, I used R Studio and R Markdown to analyze, create charts, and write up the report.   
+Check the full report in the link on the top.  
 
 ## Conclusion
 Answers to question above:
@@ -31,7 +31,7 @@ Answers to question above:
 5. I read around 30 pages/day.
 
 Even though this analysis is mostly exploratory in essence, I found that it is a great exercise as a beginner. I also think there are a lot more to be done in the future.
-From this project, I learned that I need to put more time into exploring the data, before doing any type of analysis. I spent a lot of time making graphs and charts, because of not knowing syntax and not understanding data structures. The write-ups were quite short for the time I put into each graphs.
+From this project, I learned that I need to put more time into exploring the data, before doing any type of analysis. I spent a lot of time making graphs and charts, because of not knowing syntax and not understanding data structures. The write-ups were quite short for the time I put into each graphs.  
 
-I could also learn more by reading other analyses on Goodreads data.
+I could also learn more by reading other analyses on Goodreads data.  
 This is one of my first projects I did on something I like. And I was surprised with the amount of time I put in it. It felt great. I’m gonna do this at the end of 2021 as well.
